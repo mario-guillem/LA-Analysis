@@ -20,9 +20,9 @@ for (var in var_names) {
 
 summary(datos)
 
-# VICITMAS POR GENERO -----------------------------------------------------
+# VICTIMAS POR GENERO -----------------------------------------------------
 
-# En la documentaicon del gobierno no se especifican el significado de los valores de h x, por lo que tendremos tan solo en cuenta F y M.
+# En la documentacion del gobierno no se especifican el significado de los valores de h x, por lo que tendremos tan solo en cuenta F y M.
 genero <- table(datos$Vict.Sex)
 genero
 #eliminamos los valores mal metidos y nos quedamos solo con hombres y mujeres
