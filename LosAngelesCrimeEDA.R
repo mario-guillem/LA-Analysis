@@ -20,9 +20,9 @@ for (var in var_names) {
 
 summary(datos)
 
-# VICTIMAS POR GENERO -----------------------------------------------------
+# VICITMAS POR GENERO -----------------------------------------------------
 
-# En la documentacion del gobierno no se especifican el significado de los valores de h x, por lo que tendremos tan solo en cuenta F y M.
+# En la documentaicon del gobierno no se especifican el significado de los valores de h x, por lo que tendremos tan solo en cuenta F y M.
 genero <- table(datos$Vict.Sex)
 genero
 #eliminamos los valores mal metidos y nos quedamos solo con hombres y mujeres
@@ -133,7 +133,7 @@ df3 <- casos_area %>%
   mutate(csum = rev(cumsum(rev(`summary(datos$AREA.NAME)`))), 
          pos = `summary(datos$AREA.NAME)`/2 + lead(csum, 1),
          pos = if_else(is.na(pos), `summary(datos$AREA.NAME)`/2, pos))
-
+'
 ggplot(casos_area, aes(x = "" , y = `summary(datos$AREA.NAME)`, fill = fct_inorder(rownames(casos_area)))) +
   geom_col(width = 1, color = 1) +
   coord_polar(theta = "y") +
@@ -143,12 +143,93 @@ ggplot(casos_area, aes(x = "" , y = `summary(datos$AREA.NAME)`, fill = fct_inord
                    size = 4.5, nudge_x = 1, show.legend = FALSE) +
   guides(fill = guide_legend(title = "Barrio")) +
   theme_void()
-
-
+'
 
 ggplot(data=casos_area, aes(x=rownames(casos_area), y=casos_area$`summary(datos$AREA.NAME)`)) +
   geom_bar(stat="identity" , fill= rgb(0.1,0.4,0.5,0.7))+
   geom_text(aes(label=casos_area$`summary(datos$AREA.NAME)`), vjust=1.6, color="white", size=3.5)+
   xlab("Barrio")+ ylab("Casos")+
   theme_minimal()
+
+
+
+
+# MAPAS -------------------------------------------------------------------
+
+library(sf) #for spatial data
+library(ggplot2) #for plotting
+library(dplyr) #for data manipulation
+library(RColorBrewer) #for diverging colour scheme
+library(tidyverse) #for piping
+library(ggmap) #for creating maps
+library(png) #for importing inset map image
+library(magick) #for adding inset image
+library(ggpubr) #for multi-plot figures
+library(cowplot) # for multi-plot figures
+library(knitr) # for including graphics
+
+LA <- st_read("C:/Users/Mario/Desktop/City_Boundaries.shp") #WGS84
+LA_city <- filter(LA, CITY_LABEL == "Los Angeles")
+
+
+#HAY QUE BORRAR TODAS LAS QUE TIENEN LAS LATITUDES Y LONGITUED A 0 AAAAAAAAAAAAA
+datos <- datos %>% filter(LON != 0 | LAT != 0) 
+ggplot() +
+  # Add the LA boundary shapefile
+  geom_sf(data=LA_city) +
+  # Add the crime point data +
+  #geom_point(data=LAcrime, mapping = aes(x=LON, y=LAT), color="red") +
+  # Add hex binned layer
+  geom_hex(data=datos,
+           mapping = aes(x=LON, y=LAT), bins=15, color="black")+
+  scale_fill_fermenter(n.breaks=10,palette = "RdYlBu")+
+  # No theme to remove lat/long coord axis
+  theme_void()
+
+
+ggplot() +
+  # Add the LA city boundary
+  geom_sf(data=LA_city) +
+  # Calculate 2D kernel density estimate and plot the contours
+  geom_density_2d(data=datos,
+                  mapping = aes(x=LON, y=LAT)) +
+  # No theme to remove lat/long coord axis
+  theme_void()
+
+
+map1<- ggplot() +
+  # Add LA city boundary
+  geom_sf(data=LA_city) +
+  # 2D KDE and plot contours
+  stat_density_2d(data=datos,
+                  geom = "polygon",
+                  contour = TRUE,
+                  aes(x=LON, y=LAT, fill = after_stat(level)),
+                  # Make transparent
+                  alpha = 0.6,
+                  # Contour line colour
+                  colour = "darkblue",
+                  # 5 bins used as this map will be smaller in main geovis
+                  bins = 5) +
+  # Use colour-blind friendly colour palette and format legend labels
+  scale_fill_distiller(palette = "RdYlBu", direction = -1,
+                       breaks = c(20, 30, 40, 50, 60),
+                       labels = c("Low","","Med","","High"),
+                       name = "Density (KDE)") +
+  # No theme to remove lat/long coord axis
+  theme_void() +
+  # Add plot title
+  ggtitle("Crimenes en la ciudad de Los Ángeles") +
+  # Legend and title formatting
+  theme(legend.position = c(0.10, 0.25),
+        legend.title = element_text(size=8),
+        legend.key.size = unit(0.3, "cm"),
+        plot.title = element_text(size=9, face="bold",hjust = 0.5, vjust= 1.5),
+        plot.margin = rep(unit(0,"null"),4),
+        panel.spacing = unit(0,"null"))
+
+map1
+
+
+# LO ROJO ES EL SKID ROW AHI VAMOS A ESTUDIAR.
 
