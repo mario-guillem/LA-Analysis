@@ -29,6 +29,46 @@ genero
 genero <- genero[c(2,4)]
 genero2 <- as.data.frame(genero)
 
+mf <- datos %>% filter(datos$Vict.Sex == "F" | datos$Vict.Sex == "M")
+
+
+library(tidyverse)
+#LOS 10 PRINCIPALES 
+mf %>%
+  filter(Vict.Sex=="F") %>%
+  group_by(Vict.Sex,Crm.Cd.Desc) %>%
+  tally() %>%
+  ungroup() %>%
+  mutate(Vict.Sex = reorder(Vict.Sex,n)) %>%
+  arrange(desc(n)) %>%
+  head(10) %>%
+  
+  ggplot(aes(x = Vict.Sex["F"],y = n, fill =Crm.Cd.Desc)) +
+  geom_bar(stat='identity') +
+  labs(x = 'Sexo', y = 'Nº de incidentes', 
+       title = '') +
+  coord_flip() + 
+  theme_bw() + theme(legend.position="top")
+
+mf %>%
+  filter(Vict.Sex=="M") %>%
+  group_by(Vict.Sex,Crm.Cd.Desc) %>%
+  tally() %>%
+  ungroup() %>%
+  mutate(Vict.Sex = reorder(Vict.Sex,n)) %>%
+  arrange(desc(n)) %>%
+  head(10) %>%
+  
+  ggplot(aes(x = Vict.Sex,y = n, fill =Crm.Cd.Desc)) +
+  geom_bar(stat='identity') +
+  labs(x = 'Sexo', y = 'Nº de incidentes', 
+       title = '') +
+  coord_flip() + 
+  theme_bw() + theme(legend.position="top")
+
+#Intimate partner VIOLENCIA DE PAREJA.
+
+
 options(scipen=999)
 ggplot(genero2, aes(x=Var1, y = Freq, fill = Var1)) + 
   geom_bar(stat="identity")+
@@ -154,6 +194,15 @@ ggplot(data=casos_area, aes(x=rownames(casos_area), y=casos_area$`summary(datos$
 
 
 
+# TIPO DE CRIMEN ------------
+library(gt)
+crimenes <- datos%>%
+  group_by(Crm.Cd.Desc)%>%
+  summarise(n=n())
+  
+
+ordenado <- crimenes[order(crimenes$n, decreasing = T), ]
+gt(ordenado)
 # MAPAS -------------------------------------------------------------------
 
 library(sf) #for spatial data
@@ -164,16 +213,16 @@ library(tidyverse) #for piping
 library(ggmap) #for creating maps
 library(png) #for importing inset map image
 library(magick) #for adding inset image
-library(ggpubr) #for multi-plot figures
 library(cowplot) # for multi-plot figures
 library(knitr) # for including graphics
 
-LA <- st_read("C:/Users/Mario/Desktop/City_Boundaries.shp") #WGS84
+LA <- st_read("C:/Users/Mario/Desktop/Trabajo Espaciales/City_Boundaries.shp") #WGS84
 LA_city <- filter(LA, CITY_LABEL == "Los Angeles")
-
+District <- st_read("C:/Users/Mario/Desktop/Law_Enforcement_Reporting_Districts.shp")
 
 #HAY QUE BORRAR TODAS LAS QUE TIENEN LAS LATITUDES Y LONGITUED A 0 AAAAAAAAAAAAA
 datos <- datos %>% filter(LON != 0 | LAT != 0) 
+"ESTE ES UNA MIERDA"
 ggplot() +
   # Add the LA boundary shapefile
   geom_sf(data=LA_city) +
@@ -188,13 +237,65 @@ ggplot() +
 
 
 ggplot() +
-  # Add the LA city boundary
   geom_sf(data=LA_city) +
-  # Calculate 2D kernel density estimate and plot the contours
   geom_density_2d(data=datos,
                   mapping = aes(x=LON, y=LAT)) +
-  # No theme to remove lat/long coord axis
   theme_void()
+
+ggplot() +
+  geom_sf(data=LA) +
+  geom_density_2d(data=datos,
+                  mapping = aes(x=LON, y=LAT)) +
+  theme_void()
+library(leaflet)
+library(leaflet.extras)
+datos %>%
+  leaflet() %>%
+  addTiles() %>%
+  addHeatmap(lng=datos$LON,lat=datos$LAT, blur =50, radius = 20)
+
+
+
+# LO ROJO ES EL SKID ROW AHI VAMOS A ESTUDIAR.
+
+# KDE ---------------------------------------------------------------------
+
+
+map2<- ggplot() +
+  # Add LA city boundary
+  geom_sf(data=LA) +
+  # 2D KDE and plot contours
+  stat_density_2d(data=datos,
+                  geom = "polygon",
+                  contour = TRUE,
+                  aes(x=LON, y=LAT, fill = after_stat(level)),
+                  # Make transparent
+                  alpha = 0.6,
+                  # Contour line colour
+                  colour = "darkblue",
+                  # 5 bins used as this map will be smaller in main geovis
+                  bins = 5) +
+  # Use colour-blind friendly colour palette and format legend labels
+  scale_fill_distiller(palette = "RdYlBu", direction = -1,
+                       breaks = c(20, 30, 40, 50, 60),
+                       labels = c("Low","","Med","","High"),
+                       name = "Density (KDE)") +
+  # No theme to remove lat/long coord axis
+  theme_void() +
+  # Add plot title
+  ggtitle("Crimenes en la ciudad de Los Ángeles") +
+  # Legend and title formatting
+  theme(legend.position = c(0.10, 0.25),
+        legend.title = element_text(size=8),
+        legend.key.size = unit(0.3, "cm"),
+        plot.title = element_text(size=9, face="bold",hjust = 0.5, vjust= 1.5),
+        plot.margin = rep(unit(0,"null"),4),
+        panel.spacing = unit(0,"null"))
+
+map2
+
+library(leaflet)
+library(leaflet.extras)
 
 
 map1<- ggplot() +
@@ -231,5 +332,70 @@ map1<- ggplot() +
 map1
 
 
-# LO ROJO ES EL SKID ROW AHI VAMOS A ESTUDIAR.
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+# FRECUENCIA DISTRITOS ----------------------------------------------------------------
+w <- table(datos$Rpt.Dist.No)
+rep.dis <- as.data.frame(w)
+length(unique(rep.dis$Var1))
+head(rep.dis, 5)
+library(classInt)
+library(maptools)
+library(rgdal)
+library(tidyr)
+library(RColorBrewer)
+library("spdep")
+library(plyr)
+library(tmap)
+"Frecuencia en los distritos"
+DistrictLA <- District %>% filter(District$NAME == "Los Angeles")
+DistrictLA <- merge(DistrictLA, rep.dis, by.x = "RD", by.y = "Var1", all.x = TRUE)
+DistrictLA$Freq[is.na(DistrictLA$Freq)] <- 0
+length(DistrictLA$Freq)
+
+var <- DistrictLA$Freq
+breaks <- classIntervals(var, n = 9, style = "fisher")
+my_colours <- rev(brewer.pal(9, "RdBu"))
+"By Reporting Districts"
+plot(DistrictLA, col = my_colours[findInterval(var, breaks$brks, all.inside = TRUE)],   
+     axes = FALSE, border = NA, max.plot = 1, main = "")
+legend(x = -200.7, y = 4000, legend = leglabs(breaks$brks), fill = my_colours, bty = "n", cex = 0.6, title = "")
+
+
+"
+los mas conficlitvos son
+Arriba a la izquierda: Topanga
+El grande de abajo: Aeropuerto  (Pacific division)
+Abajo derecha: 77th street division
+Skid Row (Newton)
+"
+
+
+
+# AUTOCORRELACION ---------------------------------------------------------
+
+neighbours <- poly2nb(datos)
+neighbours
+plot(districts, border = 'lightgrey')
+plot(neighbours, coordinates(districts), add=TRUE, col='red')
