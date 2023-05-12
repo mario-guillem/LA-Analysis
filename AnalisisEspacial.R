@@ -13,6 +13,7 @@ library(tmap)
 districts <- readOGR(dsn = "C:/Users/Mario/Desktop/LAPD_Reporting_Districts.shp")
 crime = read.csv("C:/Users/Mario/Desktop/Trabajo Espaciales/Crime_Data_from_2020_to_Present.csv")
 
+#UNIMOS LOS DATOS DE CRIMENES CON LOS RESPECTIVOS DISTRITOS.
 head(districts@data, 5)
 w <- table(crime$Rpt.Dist.No)
 rep.dis <- as.data.frame(w)
