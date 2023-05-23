@@ -1,4 +1,12 @@
-## Import libraries
+"
+En este archivo se encuentra parte del análisis espacial:
+
+Diferentes LISA en función de la geometria
+Morans
+Representaciones 
+"
+
+## Importar librerias
 library(classInt)
 library(maptools)
 library(rgdal)
@@ -51,14 +59,14 @@ Podemos trazar los vínculos entre los distritos vecinos para visualizar su dist
 
 
 
-#QUEEN 
-"yo creo que este es el bueno"
+ 
+
 neighbours <- poly2nb(districts, queen = F)
 neighbours
 plot(districts, border = 'lightgrey')
 plot(neighbours, coordinates(districts), add=TRUE, col='red')
 
-# ROOK
+
 "no lo tengo muy claro"
 neighbours2 <- poly2nb(districts, queen = FALSE)
 neighbours2
