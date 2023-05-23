@@ -1,3 +1,10 @@
+"En este archivo se encuentra el código de:
+-Data Cleaning
+-Exploratory Data Analysis
+-Primeros mapas de Los Ángeles
+"
+
+
 datos <- read.csv("C:/Users/Mario/Desktop/Trabajo Espaciales/Crime_Data_from_2020_to_Present.csv")
 library(lubridate)
 library(tidyverse)
@@ -232,7 +239,7 @@ LA <- st_read("C:/Users/Mario/Desktop/Trabajo Espaciales/City_Boundaries.shp") #
 LA_city <- filter(LA, CITY_LABEL == "Los Angeles")
 District <- st_read("C:/Users/Mario/Desktop/Law_Enforcement_Reporting_Districts.shp")
 
-#HAY QUE BORRAR TODAS LAS QUE TIENEN LAS LATITUDES Y LONGITUED A 0 AAAAAAAAAAAAA
+#HAY QUE BORRAR TODAS LAS QUE TIENEN LAS LATITUDES Y LONGITUED A 0 
 datos <- datos %>% filter(LON != 0 | LAT != 0) 
 "ESTE ES UNA MIERDA"
 ggplot() +
