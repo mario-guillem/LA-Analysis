@@ -2,6 +2,8 @@
 -Data Cleaning
 -Exploratory Data Analysis
 -Primeros mapas de Los Ángeles
+-KDE estimador
+-Mapa de calor
 "
 
 
