@@ -1,4 +1,9 @@
-
+"
+En este archivo se han generado los modelos
+GLM
+GAM 
+Estudio de residuos
+"
 library(sf)
 boundary <- st_read("C:/Users/Mario/Desktop/predicciones/LAPD_Divisions.shp")
 datos = read.csv("C:/Users/Mario/Desktop/Trabajo Espaciales/Crime_Data_from_2020_to_Present.csv")
