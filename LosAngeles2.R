@@ -1,7 +1,7 @@
 "
 En este archivo se encuentra parte del análisis espacial:
 
-Diferentes LISA en función de la geometria
+Diferentes LISA en función de la geometria (segmentacion en barrios o en divisiones de la policia)
 Morans
 Representaciones 
 "
@@ -19,7 +19,7 @@ library(tmap)
 "DATOS DIVIDIOS EN BARRIOS"
 ############################
 
-## Import Data
+## Importar Datos
 districts <- readOGR(dsn = "C:/Users/Mario/Desktop/LAPD_Reporting_Districts.shp")
 crime = read.csv("C:/Users/Mario/Desktop/Trabajo Espaciales/Crime_Data_from_2020_to_Present.csv")
 
@@ -34,7 +34,7 @@ districts@data <- merge(districts@data, rep.dis, by.x = "REPDIST", by.y = "Var1"
 districts$Freq[is.na(districts$Freq)] <- 0
 length(districts$Freq)
 
-#QUEDARME CON ESTE PLOT EN LUGAR DEL OTRO QUE ES IGUAL, EL OTRO ESTA MAL HECHO.
+
 var <- districts@data[,"Freq"]
 breaks <- classIntervals(var, n = 9, style = "fisher")
 my_colours <- rev(brewer.pal(9, "RdBu"))
@@ -67,12 +67,10 @@ plot(districts, border = 'lightgrey')
 plot(neighbours, coordinates(districts), add=TRUE, col='red')
 
 
-"no lo tengo muy claro"
 neighbours2 <- poly2nb(districts, queen = FALSE)
 neighbours2
 plot(districts, border = 'lightgrey')
 plot(neighbours, coordinates(districts), add=TRUE, col='blue')
-plot(neighbours2, coordinates(districts), add=TRUE, col='red')
 
 
 #MORAN TEST
@@ -101,16 +99,16 @@ moran.map <- cbind(districts, local)
 
 quadrant <- vector(mode="numeric",length=nrow(local))
 
-# centers the variable of interest around its mean
+
 m.crime <- districts$Freq - mean(districts$Freq)     
 
-# centers the local Moran's around the mean
+
 m.local <- local[,1] - mean(local[,1])    
 
-# significance threshold
+
 signif <- 0.1 
 
-# builds a data quadrant
+
 quadrant[m.crime >0 & m.local>0] <- 4  
 quadrant[m.crime <0 & m.local<0] <- 1      
 quadrant[m.crime <0 & m.local>0] <- 2
@@ -152,16 +150,16 @@ tm_shape(moran.map) + tm_fill(col = "Ii", style = "quantile", title = "local mor
 
 quadrant <- vector(mode="numeric",length=nrow(local))
 
-# centers the variable of interest around its mean
+
 m.crime <- boundary$casos_totales - mean(boundary$casos_totales)     
 
-# centers the local Moran's around the mean
+
 m.local <- local[,1] - mean(local[,1])    
 
-# significance threshold
+
 signif <- 0.1 
 
-# builds a data quadrant
+
 quadrant[m.crime >0 & m.local>0] <- 4  
 quadrant[m.crime <0 & m.local<0] <- 1      
 quadrant[m.crime <0 & m.local>0] <- 2
